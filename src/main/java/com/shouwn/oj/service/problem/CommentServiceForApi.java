@@ -1,4 +1,4 @@
-package com.shouwn.oj.service;
+package com.shouwn.oj.service.problem;
 
 public class CommentServiceForApi {
 }
