@@ -39,6 +39,17 @@ public class StudentServiceForApiTest {
 	}
 
 	@Test
+	public void loginSuccess() {
+		when(studentService.findByUsername(any())).thenReturn(this.student);
+		when(studentService.isCorrectPassword(any(), any())).thenReturn(true);
+
+		studentServiceForApi.login(this.student.getUsername(), this.student.getPassword());
+
+		verify(studentService).findByUsername(this.student.getUsername());
+		verify(studentService).isCorrectPassword(this.student, this.student.getPassword());
+	}
+
+	@Test
 	public void loginThrowsUsernameNotExistException() {
 		when(studentService.findByUsername(any())).thenThrow(UsernameNotExistException.class);
 
@@ -51,7 +62,7 @@ public class StudentServiceForApiTest {
 	@Test
 	public void loginThrowPasswordIncorrectException() {
 		when(studentService.findByUsername(any())).thenReturn(this.student);
-		when(studentService.isCorrectPassword(any(),any())).thenReturn(false);
+		when(studentService.isCorrectPassword(any(), any())).thenReturn(false);
 
 		String wrongPassword = "12345test";
 
