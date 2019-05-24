@@ -1,26 +1,19 @@
 package com.shouwn.oj.service.member;
 
-import com.shouwn.oj.exception.member.PasswordIncorrectException;
-import com.shouwn.oj.exception.member.UsernameNotExistException;
+import java.util.Optional;
+
+import com.shouwn.oj.exception.AuthenticationFailedException;
+import com.shouwn.oj.exception.NotFoundException;
 import com.shouwn.oj.model.entity.member.Student;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-@SpringBootTest
 public class StudentServiceForApiTest {
 
-	@Mock
 	private StudentService studentService;
 
 	private StudentServiceForApi studentServiceForApi;
@@ -29,6 +22,7 @@ public class StudentServiceForApiTest {
 
 	@BeforeEach
 	void init() {
+		studentService = mock(StudentService.class);
 		this.studentServiceForApi = new StudentServiceForApi(this.studentService);
 		this.student = Student.builder()
 				.name("test")
@@ -40,7 +34,7 @@ public class StudentServiceForApiTest {
 
 	@Test
 	public void loginSuccess() {
-		when(studentService.findByUsername(any())).thenReturn(this.student);
+		when(studentService.findByUsername(any())).thenReturn(Optional.of(this.student));
 		when(studentService.isCorrectPassword(any(), any())).thenReturn(true);
 
 		studentServiceForApi.login(this.student.getUsername(), this.student.getPassword());
@@ -50,23 +44,23 @@ public class StudentServiceForApiTest {
 	}
 
 	@Test
-	public void loginThrowsUsernameNotExistException() {
-		when(studentService.findByUsername(any())).thenThrow(UsernameNotExistException.class);
+	public void loginThrowsNotFoundExceptionByUsername() {
+		when(studentService.findByUsername(any())).thenReturn(Optional.empty());
 
-		assertThrows(UsernameNotExistException.class,
+		assertThrows(NotFoundException.class,
 				() -> studentServiceForApi.login(this.student.getUsername(), this.student.getPassword()));
 
 		verify(studentService).findByUsername(this.student.getUsername());
 	}
 
 	@Test
-	public void loginThrowPasswordIncorrectException() {
-		when(studentService.findByUsername(any())).thenReturn(this.student);
+	public void loginThrowAuthenticationFailedExceptionPassword() {
+		when(studentService.findByUsername(any())).thenReturn(Optional.of(this.student));
 		when(studentService.isCorrectPassword(any(), any())).thenReturn(false);
 
 		String wrongPassword = "12345test";
 
-		assertThrows(PasswordIncorrectException.class,
+		assertThrows(AuthenticationFailedException.class,
 				() -> studentServiceForApi.login(this.student.getUsername(), wrongPassword)
 		);
 
