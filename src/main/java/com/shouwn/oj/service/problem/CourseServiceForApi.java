@@ -28,8 +28,8 @@ public class CourseServiceForApi {
 		return studentService.findById(studentId).get().getCourses();
 	}
 
-	public List<Course> getAllCourses() {
-		return courseService.findAll();
+	public List<Course> getCoursesByEnabled() {
+		return courseService.findCoursesByEnabled();
 	}
 
 	@Transactional

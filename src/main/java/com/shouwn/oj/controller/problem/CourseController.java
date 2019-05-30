@@ -48,8 +48,8 @@ public class CourseController {
 	}
 
 	@GetMapping("/all")
-	public ApiResponse<?> getAllCourses() {
-		List<Course> courses = courseServiceForApi.getAllCourses();
+	public ApiResponse<?> getCoursesByEnabled() {
+		List<Course> courses = courseServiceForApi.getCoursesByEnabled();
 		List<CourseListResponse> courseListResponses = new ArrayList<>();
 
 		for (Course c : courses) {
