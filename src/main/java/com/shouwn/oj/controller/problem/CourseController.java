@@ -1,8 +1,9 @@
 package com.shouwn.oj.controller.problem;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import com.shouwn.oj.model.entity.member.Admin;
 import com.shouwn.oj.model.entity.member.Student;
 import com.shouwn.oj.model.entity.problem.Course;
 import com.shouwn.oj.model.response.ApiResponse;
@@ -15,7 +16,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("courses")
 @PreAuthorize("isAuthenticated()")
 public class CourseController {
 
@@ -25,20 +25,22 @@ public class CourseController {
 		this.courseServiceForApi = courseServiceForApi;
 	}
 
-	@GetMapping
+	public CourseListResponse courseListResponseBuilder(Course course) {
+		Admin professor = course.getProfessor();
+
+		return CourseListResponse.builder()
+				.id(course.getId())
+				.name(course.getName())
+				.professorName(professor.getName())
+				.build();
+	}
+
+	@GetMapping("/courses")
 	public ApiResponse<?> getRegisteredCourses(@RequestAttribute Long requesterId) {
 		List<Course> courses = courseServiceForApi.getRegisteredCourses(requesterId);
-		List<CourseListResponse> courseListResponses = new ArrayList<>();
-
-		for (Course c : courses) {
-			CourseListResponse courseListResponse = CourseListResponse.builder()
-					.id(c.getId())
-					.name(c.getName())
-					.professor(c.getProfessor())
-					.build();
-
-			courseListResponses.add(courseListResponse);
-		}
+		List<CourseListResponse> courseListResponses = courses.stream()
+				.map(course -> courseListResponseBuilder(course))
+				.collect(Collectors.toList());
 
 		return CommonResponse.builder()
 				.status(HttpStatus.OK)
@@ -47,20 +49,12 @@ public class CourseController {
 				.build();
 	}
 
-	@GetMapping("/all")
+	@GetMapping("/courses/enabled")
 	public ApiResponse<?> getCoursesByEnabled() {
 		List<Course> courses = courseServiceForApi.getCoursesByEnabled();
-		List<CourseListResponse> courseListResponses = new ArrayList<>();
-
-		for (Course c : courses) {
-			CourseListResponse courseListResponse = CourseListResponse.builder()
-					.id(c.getId())
-					.name(c.getName())
-					.professor(c.getProfessor())
-					.build();
-
-			courseListResponses.add(courseListResponse);
-		}
+		List<CourseListResponse> courseListResponses = courses.stream()
+				.map(course -> courseListResponseBuilder(course))
+				.collect(Collectors.toList());
 
 		return CommonResponse.builder()
 				.status(HttpStatus.OK)
@@ -69,8 +63,8 @@ public class CourseController {
 				.build();
 	}
 
-	@PostMapping
-	public ApiResponse<?> registerCourse(@RequestAttribute Long requesterId, @RequestParam("courseId") Long courseId) {
+	@PostMapping("register/courses/{courseId}")
+	public ApiResponse<?> registerCourse(@RequestAttribute Long requesterId, @PathVariable("courseId") Long courseId) {
 		Student student = courseServiceForApi.registerCourse(requesterId, courseId);
 
 		return CommonResponse.builder()

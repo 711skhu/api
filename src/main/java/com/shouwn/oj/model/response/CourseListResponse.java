@@ -1,6 +1,5 @@
 package com.shouwn.oj.model.response;
 
-import com.shouwn.oj.model.entity.member.Admin;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -11,12 +10,12 @@ public class CourseListResponse {
 
 	private String name;
 
-	private Admin professor;
+	private String professorName;
 
 	@Builder
-	public CourseListResponse(Long id, String name, Admin professor) {
+	public CourseListResponse(Long id, String name, String professorName) {
 		this.id = id;
 		this.name = name;
-		this.professor = professor;
+		this.professorName = professorName;
 	}
 }
