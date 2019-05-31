@@ -3,7 +3,6 @@ package com.shouwn.oj.controller.problem;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.shouwn.oj.model.entity.member.Admin;
 import com.shouwn.oj.model.entity.member.Student;
 import com.shouwn.oj.model.entity.problem.Course;
 import com.shouwn.oj.model.response.ApiResponse;
@@ -25,21 +24,11 @@ public class CourseController {
 		this.courseServiceForApi = courseServiceForApi;
 	}
 
-	public CourseListResponse courseListResponseBuilder(Course course) {
-		Admin professor = course.getProfessor();
-
-		return CourseListResponse.builder()
-				.id(course.getId())
-				.name(course.getName())
-				.professorName(professor.getName())
-				.build();
-	}
-
 	@GetMapping("/courses")
 	public ApiResponse<?> getRegisteredCourses(@RequestAttribute Long requesterId) {
 		List<Course> courses = courseServiceForApi.getRegisteredCourses(requesterId);
 		List<CourseListResponse> courseListResponses = courses.stream()
-				.map(course -> courseListResponseBuilder(course))
+				.map(CourseListResponse::new)
 				.collect(Collectors.toList());
 
 		return CommonResponse.builder()
@@ -53,7 +42,7 @@ public class CourseController {
 	public ApiResponse<?> getCoursesByEnabled() {
 		List<Course> courses = courseServiceForApi.getCoursesByEnabled();
 		List<CourseListResponse> courseListResponses = courses.stream()
-				.map(course -> courseListResponseBuilder(course))
+				.map(CourseListResponse::new)
 				.collect(Collectors.toList());
 
 		return CommonResponse.builder()

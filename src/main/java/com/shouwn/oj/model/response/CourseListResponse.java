@@ -1,5 +1,6 @@
 package com.shouwn.oj.model.response;
 
+import com.shouwn.oj.model.entity.problem.Course;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -13,9 +14,9 @@ public class CourseListResponse {
 	private String professorName;
 
 	@Builder
-	public CourseListResponse(Long id, String name, String professorName) {
-		this.id = id;
-		this.name = name;
-		this.professorName = professorName;
+	public CourseListResponse(Course course) {
+		this.id = course.getId();
+		this.name = course.getName();
+		this.professorName = course.getProfessor().getName();
 	}
 }
