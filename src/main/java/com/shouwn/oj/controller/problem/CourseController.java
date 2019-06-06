@@ -24,7 +24,7 @@ public class CourseController {
 		this.courseServiceForApi = courseServiceForApi;
 	}
 
-	@GetMapping("/courses")
+	@GetMapping("/own/courses")
 	public ApiResponse<?> getRegisteredCourses(@RequestAttribute Long requesterId) {
 		List<Course> courses = courseServiceForApi.getRegisteredCourses(requesterId);
 		List<CourseListResponse> courseListResponses = courses.stream()
