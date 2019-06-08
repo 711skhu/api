@@ -8,6 +8,7 @@ import com.shouwn.oj.model.entity.problem.Course;
 import com.shouwn.oj.model.response.ApiResponse;
 import com.shouwn.oj.model.response.CommonResponse;
 import com.shouwn.oj.model.response.course.CourseListResponse;
+import com.shouwn.oj.security.CurrentUser;
 import com.shouwn.oj.service.problem.CourseServiceForApi;
 
 import org.springframework.http.HttpStatus;
@@ -25,8 +26,8 @@ public class CourseController {
 	}
 
 	@GetMapping("/own/courses")
-	public ApiResponse<?> getRegisteredCourses(@RequestAttribute Long requesterId) {
-		List<Course> courses = courseServiceForApi.getRegisteredCourses(requesterId);
+	public ApiResponse<?> getRegisteredCourses(@CurrentUser Long memberId) {
+		List<Course> courses = courseServiceForApi.getRegisteredCourses(memberId);
 		List<CourseListResponse> courseListResponses = courses.stream()
 				.map(CourseListResponse::new)
 				.collect(Collectors.toList());
@@ -53,8 +54,8 @@ public class CourseController {
 	}
 
 	@PostMapping("register/courses/{courseId}")
-	public ApiResponse<?> registerCourse(@RequestAttribute Long requesterId, @PathVariable("courseId") Long courseId) {
-		Student student = courseServiceForApi.registerCourse(requesterId, courseId);
+	public ApiResponse<?> registerCourse(@CurrentUser Long memberId, @PathVariable("courseId") Long courseId) {
+		Student student = courseServiceForApi.registerCourse(memberId, courseId);
 
 		return CommonResponse.builder()
 				.status(HttpStatus.CREATED)
