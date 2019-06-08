@@ -144,4 +144,13 @@ public class CourseServiceForApiTest {
 		verify(courseService).findById(courseId);
 		verify(studentService).findById(this.student.getId());
 	}
+
+	@Test
+	public void courseInformationThrowsIllegalStateExceptionWhenWrongCourseId() {
+		when(courseService.findById(any())).thenReturn(Optional.empty());
+
+		assertThrows(IllegalStateException.class, () -> courseServiceForApi.courseInformation(this.registeredCourse.getId()));
+
+		verify(courseService).findById(any());
+	}
 }

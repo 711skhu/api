@@ -7,6 +7,7 @@ import com.shouwn.oj.model.entity.member.Student;
 import com.shouwn.oj.model.entity.problem.Course;
 import com.shouwn.oj.model.response.ApiResponse;
 import com.shouwn.oj.model.response.CommonResponse;
+import com.shouwn.oj.model.response.CourseInfoResponse;
 import com.shouwn.oj.model.response.CourseListResponse;
 import com.shouwn.oj.service.problem.CourseServiceForApi;
 
@@ -59,6 +60,23 @@ public class CourseController {
 		return CommonResponse.builder()
 				.status(HttpStatus.CREATED)
 				.message("강좌 수강신청 성공")
+				.build();
+	}
+
+	@GetMapping("/courses/{courseId}")
+	public ApiResponse<?> getCourse(@PathVariable("courseId") Long courseId) {
+		Course course = courseServiceForApi.courseInformation(courseId);
+
+		CourseInfoResponse courseInfoResponse = CourseInfoResponse.builder()
+				.courseId(course.getId())
+				.courseName(course.getName())
+				.description(course.getDescription())
+				.build();
+
+		return CommonResponse.builder()
+				.status(HttpStatus.OK)
+				.message("강좌소개 조회 성공")
+				.data(courseInfoResponse)
 				.build();
 	}
 

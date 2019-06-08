@@ -54,4 +54,9 @@ public class CourseServiceForApi {
 
 		return studentService.save(student);
 	}
+
+	public Course courseInformation(Long courseId) {
+		Course course = courseService.findById(courseId).orElseThrow(() -> new IllegalStateException("해당 강좌가 존재하지 않습니다."));
+		return course;
+	}
 }
