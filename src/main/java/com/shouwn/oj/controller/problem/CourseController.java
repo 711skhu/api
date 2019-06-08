@@ -1,15 +1,15 @@
 package com.shouwn.oj.controller.problem;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import com.shouwn.oj.model.entity.member.Student;
 import com.shouwn.oj.model.entity.problem.Course;
-import com.shouwn.oj.model.response.ApiResponse;
-import com.shouwn.oj.model.response.CommonResponse;
-import com.shouwn.oj.model.response.CourseInfoResponse;
-import com.shouwn.oj.model.response.CourseListResponse;
+import com.shouwn.oj.model.entity.problem.Problem;
+import com.shouwn.oj.model.response.*;
 import com.shouwn.oj.service.problem.CourseServiceForApi;
+import com.shouwn.oj.service.problem.ProblemServiceForApi;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,8 +21,11 @@ public class CourseController {
 
 	private CourseServiceForApi courseServiceForApi;
 
-	public CourseController(CourseServiceForApi courseServiceForApi) {
+	private ProblemServiceForApi problemServiceForApi;
+
+	public CourseController(CourseServiceForApi courseServiceForApi, ProblemServiceForApi problemServiceForApi) {
 		this.courseServiceForApi = courseServiceForApi;
+		this.problemServiceForApi = problemServiceForApi;
 	}
 
 	@GetMapping("/own/courses")
@@ -64,7 +67,7 @@ public class CourseController {
 	}
 
 	@GetMapping("/courses/{courseId}")
-	public ApiResponse<?> getCourse(@PathVariable("courseId") Long courseId) {
+	public ApiResponse<?> getCourseInformation(@PathVariable("courseId") Long courseId) {
 		Course course = courseServiceForApi.courseInformation(courseId);
 
 		CourseInfoResponse courseInfoResponse = CourseInfoResponse.builder()
@@ -77,6 +80,35 @@ public class CourseController {
 				.status(HttpStatus.OK)
 				.message("강좌소개 조회 성공")
 				.data(courseInfoResponse)
+				.build();
+	}
+
+	@GetMapping("/courses/{courseId}/problems")
+	public ApiResponse<?> getCourseMainProblems(@PathVariable("courseId") Long courseId) {
+		List<Problem> problems = courseServiceForApi.getProblemList(courseId);
+		List<CourseMainProblemResponse> courseMainProblemResponses = new ArrayList<>();
+
+		for (Problem problem : problems) {
+			int totalProblemCount = problemServiceForApi.CountTotalProblem(problem.getId());
+			int resolvedProblemCount = problemServiceForApi.countResolvedProblem(problem.getId());
+			int unresolvedProblemCount = totalProblemCount - resolvedProblemCount;
+
+			courseMainProblemResponses.add(
+					CourseMainProblemResponse.builder()
+							.courseId(courseId)
+							.problemId(problem.getId())
+							.problemType(problem.getType())
+							.totalProblemCount(totalProblemCount)
+							.resolvedProblemCount(resolvedProblemCount)
+							.unresolvedProblemCount(unresolvedProblemCount)
+							.build()
+			);
+		}
+
+		return CommonResponse.builder()
+				.status(HttpStatus.OK)
+				.message("문제 타입목록 조회 성공")
+				.data(courseMainProblemResponses)
 				.build();
 	}
 

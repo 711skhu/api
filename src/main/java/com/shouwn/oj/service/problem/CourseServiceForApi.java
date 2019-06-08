@@ -6,6 +6,7 @@ import com.shouwn.oj.exception.AlreadyExistException;
 import com.shouwn.oj.exception.IllegalStateException;
 import com.shouwn.oj.model.entity.member.Student;
 import com.shouwn.oj.model.entity.problem.Course;
+import com.shouwn.oj.model.entity.problem.Problem;
 import com.shouwn.oj.service.member.StudentService;
 
 import org.springframework.stereotype.Service;
@@ -58,5 +59,10 @@ public class CourseServiceForApi {
 	public Course courseInformation(Long courseId) {
 		Course course = courseService.findById(courseId).orElseThrow(() -> new IllegalStateException("해당 강좌가 존재하지 않습니다."));
 		return course;
+	}
+
+	public List<Problem> getProblemList(Long courseId) {
+		Course course = courseService.findById(courseId).orElseThrow(() -> new IllegalStateException("해당 강좌가 존재하지 않습니다."));
+		return course.getProblems();
 	}
 }
