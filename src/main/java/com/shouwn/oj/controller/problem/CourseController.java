@@ -7,7 +7,7 @@ import com.shouwn.oj.model.entity.member.Student;
 import com.shouwn.oj.model.entity.problem.Course;
 import com.shouwn.oj.model.response.ApiResponse;
 import com.shouwn.oj.model.response.CommonResponse;
-import com.shouwn.oj.model.response.CourseListResponse;
+import com.shouwn.oj.model.response.course.CourseListResponse;
 import com.shouwn.oj.service.problem.CourseServiceForApi;
 
 import org.springframework.http.HttpStatus;
