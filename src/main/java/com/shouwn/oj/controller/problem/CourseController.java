@@ -2,12 +2,15 @@ package com.shouwn.oj.controller.problem;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.shouwn.oj.model.entity.member.Student;
 import com.shouwn.oj.model.entity.problem.Course;
 import com.shouwn.oj.model.entity.problem.Problem;
+import com.shouwn.oj.model.enums.ProblemType;
 import com.shouwn.oj.model.response.*;
+import com.shouwn.oj.service.member.StudentServiceForApi;
 import com.shouwn.oj.service.problem.CourseServiceForApi;
 import com.shouwn.oj.service.problem.ProblemServiceForApi;
 
@@ -21,10 +24,13 @@ public class CourseController {
 
 	private CourseServiceForApi courseServiceForApi;
 
+	private StudentServiceForApi studentServiceForApi;
+
 	private ProblemServiceForApi problemServiceForApi;
 
-	public CourseController(CourseServiceForApi courseServiceForApi, ProblemServiceForApi problemServiceForApi) {
+	public CourseController(CourseServiceForApi courseServiceForApi, StudentServiceForApi studentServiceForApi, ProblemServiceForApi problemServiceForApi) {
 		this.courseServiceForApi = courseServiceForApi;
+		this.studentServiceForApi = studentServiceForApi;
 		this.problemServiceForApi = problemServiceForApi;
 	}
 
@@ -84,31 +90,31 @@ public class CourseController {
 	}
 
 	@GetMapping("/courses/{courseId}/problems")
-	public ApiResponse<?> getCourseMainProblems(@PathVariable("courseId") Long courseId) {
-		List<Problem> problems = courseServiceForApi.getProblemList(courseId);
-		List<CourseMainProblemResponse> courseMainProblemResponses = new ArrayList<>();
+	public ApiResponse<?> getCourseMainProblems(@RequestAttribute Long requesterId, @PathVariable("courseId") Long courseId) {
+		Map<ProblemType, List<Problem>> problemTypeListMap = courseServiceForApi.getCourseMainProblem(courseId);
+		Student student = studentServiceForApi.findById(requesterId);
 
-		for (Problem problem : problems) {
-			int totalProblemCount = problemServiceForApi.CountTotalProblem(problem.getId());
-			int resolvedProblemCount = problemServiceForApi.countResolvedProblem(problem.getId());
-			int unresolvedProblemCount = totalProblemCount - resolvedProblemCount;
+		List<ProblemCountResponse> problemCountResponses = new ArrayList<>();
 
-			courseMainProblemResponses.add(
-					CourseMainProblemResponse.builder()
-							.courseId(courseId)
-							.problemId(problem.getId())
-							.problemType(problem.getType())
-							.totalProblemCount(totalProblemCount)
-							.resolvedProblemCount(resolvedProblemCount)
-							.unresolvedProblemCount(unresolvedProblemCount)
-							.build()
+		for (ProblemType problemType : problemTypeListMap.keySet()) {
+			List<Problem> problems = problemTypeListMap.get(problemType);
+
+			int totalCount = problems.size();
+			int resolvedCount = problemServiceForApi.getResolvedProblemCount(student, problems);
+
+			problemCountResponses.add(ProblemCountResponse.builder()
+					.problemType(problemType)
+					.totalCount(totalCount)
+					.resolvedCount(resolvedCount)
+					.unresolvedCount(totalCount - resolvedCount)
+					.build()
 			);
 		}
 
 		return CommonResponse.builder()
 				.status(HttpStatus.OK)
 				.message("문제 타입목록 조회 성공")
-				.data(courseMainProblemResponses)
+				.data(problemCountResponses)
 				.build();
 	}
 

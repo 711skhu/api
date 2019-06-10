@@ -1,12 +1,15 @@
 package com.shouwn.oj.service.problem;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.shouwn.oj.exception.AlreadyExistException;
 import com.shouwn.oj.exception.IllegalStateException;
 import com.shouwn.oj.model.entity.member.Student;
 import com.shouwn.oj.model.entity.problem.Course;
 import com.shouwn.oj.model.entity.problem.Problem;
+import com.shouwn.oj.model.enums.ProblemType;
 import com.shouwn.oj.service.member.StudentService;
 
 import org.springframework.stereotype.Service;
@@ -64,5 +67,14 @@ public class CourseServiceForApi {
 	public List<Problem> getProblemList(Long courseId) {
 		Course course = courseService.findById(courseId).orElseThrow(() -> new IllegalStateException("해당 강좌가 존재하지 않습니다."));
 		return course.getProblems();
+	}
+
+	public Map<ProblemType, List<Problem>> getCourseMainProblem(Long courseId) {
+		List<Problem> problems = getProblemList(courseId);
+
+		Map<ProblemType, List<Problem>> problemTypeListMap = problems.stream()
+				.collect(Collectors.groupingBy(Problem::getType, Collectors.toList()));
+
+		return problemTypeListMap;
 	}
 }

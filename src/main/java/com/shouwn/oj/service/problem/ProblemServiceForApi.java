@@ -2,10 +2,11 @@ package com.shouwn.oj.service.problem;
 
 import java.util.List;
 
-import com.shouwn.oj.exception.IllegalStateException;
+import com.shouwn.oj.model.entity.member.Student;
 import com.shouwn.oj.model.entity.problem.Problem;
 import com.shouwn.oj.model.entity.problem.ProblemDetail;
 import com.shouwn.oj.model.entity.problem.Solution;
+import com.shouwn.oj.model.entity.problem.TestCase;
 
 import org.springframework.stereotype.Service;
 
@@ -21,32 +22,44 @@ public class ProblemServiceForApi {
 		this.solutionService = solutionService;
 	}
 
-	public int countResolvedProblem(Long problemId) {
-		Problem problem = problemService.findById(problemId).orElseThrow(() -> new IllegalStateException("존재하지 않는 문제입니다."));
-		List<ProblemDetail> problemDetails = problem.getProblemDetails();
+	public int getResolvedProblemCount(Student student, List<Problem> problems) {
+		int resolvedCount = 0;
 
-		int count = 0;
+		if (problems.size() == 0) {
+			return resolvedCount;
+		}
 
-		for (ProblemDetail problemDetail : problemDetails) {
-			int testCaseSize = problemDetail.getTestCases().size();
-			List<Solution> solutions = solutionService.findSolutionsByProblemDetailOrderByIdDesc(problemDetail);
+		for (Problem problem : problems) {
+			List<ProblemDetail> problemDetails = problem.getProblemDetails();
 
-			if (solutions.size() == 0) {
+			if (problemDetails.isEmpty()) {
 				continue;
 			}
 
-			int solutionScore = solutions.get(0).getScore();
-
-			if (testCaseSize == solutionScore) {
-				++count;
+			if (problemDetails.size() == resolvedProblemDetailCount(problemDetails, student)) {
+				++resolvedCount;
 			}
 		}
 
-		return count;
+		return resolvedCount;
 	}
 
-	public int CountTotalProblem(Long problemId) {
-		Problem problem = problemService.findById(problemId).orElseThrow(() -> new IllegalStateException("존재하지 않는 문제입니다."));
-		return problem.getProblemDetails().size();
+	public int resolvedProblemDetailCount(List<ProblemDetail> problemDetails, Student student) {
+		int resolvedCount = 0;
+
+		for (ProblemDetail problemDetail : problemDetails) {
+			List<TestCase> testCases = problemDetail.getTestCases();
+			List<Solution> solutions = solutionService.findSolutionsByProblemDetailAndMember(problemDetail, student);
+
+			if (solutions.isEmpty()) {
+				continue;
+			}
+
+			if (testCases.size() == solutions.get(0).getScore()) {
+				++resolvedCount;
+			}
+		}
+
+		return resolvedCount;
 	}
 }

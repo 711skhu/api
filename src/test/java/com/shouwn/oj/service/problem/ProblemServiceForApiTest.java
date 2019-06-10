@@ -1,8 +1,8 @@
 package com.shouwn.oj.service.problem;
 
 import java.util.Arrays;
-import java.util.Optional;
 
+import com.shouwn.oj.model.entity.member.Student;
 import com.shouwn.oj.model.entity.problem.*;
 import com.shouwn.oj.model.enums.ProblemType;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,7 +12,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class ProblemServiceForApiTest {
@@ -24,6 +26,8 @@ public class ProblemServiceForApiTest {
 	private SolutionService solutionService;
 
 	private ProblemServiceForApi problemServiceForApi;
+
+	private Student student;
 
 	private Course course;
 
@@ -38,6 +42,13 @@ public class ProblemServiceForApiTest {
 	@BeforeEach
 	void init() {
 		this.problemServiceForApi = new ProblemServiceForApi(this.problemService, this.solutionService);
+
+		this.student = Student.builder()
+				.name("test")
+				.username("test")
+				.password("test1234")
+				.email("test@akhu.ac.kr")
+				.build();
 
 		this.course = Course.builder()
 				.name("test")
@@ -77,18 +88,39 @@ public class ProblemServiceForApiTest {
 				.build();
 
 		this.problemDetail.getSolutions().add(this.solution);
+		this.student.getSolutions().add(this.solution);
 	}
 
 	@Test
-	public void countResolvedProblemSuccess() {
-		when(problemService.findById(any())).thenReturn(Optional.of(this.problem));
-		when(solutionService.findSolutionsByProblemDetailOrderByIdDesc(any())).thenReturn(Arrays.asList(this.solution));
+	public void getResolvedProblemCountSuccess() {
+		when(solutionService.findSolutionsByProblemDetailAndMember(any(), any())).thenReturn(Arrays.asList(this.solution));
 
-		int resolvedCount = this.problemServiceForApi.countResolvedProblem(this.problem.getId());
+		int resolvedProblemCount = problemServiceForApi.getResolvedProblemCount(this.student, Arrays.asList(this.problem));
 
-		assertEquals(1, resolvedCount);
+		verify(solutionService).findSolutionsByProblemDetailAndMember(this.problemDetail, this.student);
+		assertEquals(1, resolvedProblemCount);
+	}
 
-		verify(problemService).findById(this.problem.getId());
-		verify(solutionService).findSolutionsByProblemDetailOrderByIdDesc(this.problem.getProblemDetails().get(0));
+	@Test
+	public void getResolvedProblemCountSuccessWhenSolutionsIsEmpty() {
+		when(solutionService.findSolutionsByProblemDetailAndMember(any(), any())).thenReturn(Arrays.asList());
+
+		int resolvedProblemCount = problemServiceForApi.getResolvedProblemCount(this.student, Arrays.asList(this.problem));
+
+		verify(solutionService).findSolutionsByProblemDetailAndMember(this.problemDetail, this.student);
+		assertEquals(0, resolvedProblemCount);
+	}
+
+	@Test
+	public void getResolvedProblemCountSuccessWhenProblemDetailsIsEmpty() {
+		Problem p = Problem.builder()
+				.title("test")
+				.type(ProblemType.EXAM)
+				.course(this.course)
+				.build();
+
+		int resolvedProblemCount = problemServiceForApi.getResolvedProblemCount(this.student, Arrays.asList(p));
+
+		assertEquals(0, resolvedProblemCount);
 	}
 }
