@@ -21,10 +21,7 @@ import one.util.streamex.EntryStream;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @PreAuthorize("isAuthenticated()")
@@ -43,8 +40,8 @@ public class CourseController {
 	}
 
 	@GetMapping("/own/courses")
-	public ApiResponse<?> getRegisteredCourses(@CurrentUser Long requesterId) {
-		List<Course> courses = courseServiceForApi.getRegisteredCourses(requesterId);
+	public ApiResponse<?> getRegisteredCourses(@CurrentUser Long memberId) {
+		List<Course> courses = courseServiceForApi.getRegisteredCourses(memberId);
 		List<CourseListResponse> courseListResponses = courses.stream()
 				.map(CourseListResponse::new)
 				.collect(Collectors.toList());
@@ -71,8 +68,8 @@ public class CourseController {
 	}
 
 	@PostMapping("register/courses/{courseId}")
-	public ApiResponse<?> registerCourse(@CurrentUser Long requesterId, @PathVariable("courseId") Long courseId) {
-		Student student = courseServiceForApi.registerCourse(requesterId, courseId);
+	public ApiResponse<?> registerCourse(@CurrentUser Long memberId, @PathVariable("courseId") Long courseId) {
+		Student student = courseServiceForApi.registerCourse(memberId, courseId);
 
 		return CommonResponse.builder()
 				.status(HttpStatus.CREATED)
