@@ -1,4 +1,4 @@
-package com.shouwn.oj.model.response;
+package com.shouwn.oj.model.response.student;
 
 import lombok.Builder;
 import lombok.Getter;
