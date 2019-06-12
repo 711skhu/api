@@ -1,6 +1,6 @@
 package com.shouwn.oj.service.problem;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 import com.shouwn.oj.model.entity.member.Student;
 import com.shouwn.oj.model.entity.problem.*;
@@ -93,34 +93,21 @@ public class ProblemServiceForApiTest {
 
 	@Test
 	public void getResolvedProblemCountSuccess() {
-		when(solutionService.findSolutionsByProblemDetailAndMember(any(), any())).thenReturn(Arrays.asList(this.solution));
+		when(solutionService.getStudentScoreInProblemDetails(any(), any())).thenReturn(this.problem.fullScore());
 
-		int resolvedProblemCount = problemServiceForApi.getResolvedProblemCount(this.student, Arrays.asList(this.problem));
+		int resolvedProblemCount = problemServiceForApi.getResolvedProblemCount(this.student, Collections.singletonList(this.problem));
 
-		verify(solutionService).findSolutionsByProblemDetailAndMember(this.problemDetail, this.student);
+		verify(solutionService).getStudentScoreInProblemDetails(this.student, Collections.singletonList(this.problemDetail));
 		assertEquals(1, resolvedProblemCount);
 	}
 
 	@Test
-	public void getResolvedProblemCountSuccessWhenSolutionsIsEmpty() {
-		when(solutionService.findSolutionsByProblemDetailAndMember(any(), any())).thenReturn(Arrays.asList());
+	void getResolvedProblemCountSuccessWhenSolutionsIsEmpty() {
+		when(solutionService.getStudentScoreInProblemDetails(any(), any())).thenReturn(0);
 
-		int resolvedProblemCount = problemServiceForApi.getResolvedProblemCount(this.student, Arrays.asList(this.problem));
+		int resolvedProblemCount = problemServiceForApi.getResolvedProblemCount(this.student, Collections.singletonList(this.problem));
 
-		verify(solutionService).findSolutionsByProblemDetailAndMember(this.problemDetail, this.student);
-		assertEquals(0, resolvedProblemCount);
-	}
-
-	@Test
-	public void getResolvedProblemCountSuccessWhenProblemDetailsIsEmpty() {
-		Problem p = Problem.builder()
-				.title("test")
-				.type(ProblemType.EXAM)
-				.course(this.course)
-				.build();
-
-		int resolvedProblemCount = problemServiceForApi.getResolvedProblemCount(this.student, Arrays.asList(p));
-
+		verify(solutionService).getStudentScoreInProblemDetails(this.student, Collections.singletonList(this.problemDetail));
 		assertEquals(0, resolvedProblemCount);
 	}
 }

@@ -1,15 +1,11 @@
 package com.shouwn.oj.service.problem;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import com.shouwn.oj.exception.AlreadyExistException;
 import com.shouwn.oj.exception.IllegalStateException;
 import com.shouwn.oj.model.entity.member.Student;
 import com.shouwn.oj.model.entity.problem.Course;
-import com.shouwn.oj.model.entity.problem.Problem;
-import com.shouwn.oj.model.enums.ProblemType;
 import com.shouwn.oj.service.member.StudentService;
 
 import org.springframework.stereotype.Service;
@@ -39,7 +35,7 @@ public class CourseServiceForApi {
 	@Transactional
 	public Student registerCourse(Long studentId, Long courseId) {
 		Student student = studentService.findById(studentId).orElseThrow(() -> new IllegalStateException("존재하지 않는 사용자입니다."));
-		Course course = courseService.findById(courseId).orElseThrow(() -> new IllegalStateException("해당 강좌가 존재하지 않습니다."));
+		Course course = courseService.findCourseById(courseId).orElseThrow(() -> new IllegalStateException("해당 강좌가 존재하지 않습니다."));
 
 		if (!course.getEnabled()) {
 			throw new IllegalStateException("해당 강좌는 비활성화된 강좌입니다.");
@@ -59,22 +55,7 @@ public class CourseServiceForApi {
 		return studentService.save(student);
 	}
 
-	public Course courseInformation(Long courseId) {
-		Course course = courseService.findById(courseId).orElseThrow(() -> new IllegalStateException("해당 강좌가 존재하지 않습니다."));
-		return course;
-	}
-
-	public List<Problem> getProblemList(Long courseId) {
-		Course course = courseService.findById(courseId).orElseThrow(() -> new IllegalStateException("해당 강좌가 존재하지 않습니다."));
-		return course.getProblems();
-	}
-
-	public Map<ProblemType, List<Problem>> getCourseMainProblem(Long courseId) {
-		List<Problem> problems = getProblemList(courseId);
-
-		Map<ProblemType, List<Problem>> problemTypeListMap = problems.stream()
-				.collect(Collectors.groupingBy(Problem::getType, Collectors.toList()));
-
-		return problemTypeListMap;
+	public Course getCourseById(Long courseId) {
+		return courseService.findCourseById(courseId).orElseThrow(() -> new IllegalStateException("해당 강좌가 존재하지 않습니다."));
 	}
 }

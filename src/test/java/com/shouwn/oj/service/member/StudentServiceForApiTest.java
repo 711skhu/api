@@ -1,29 +1,33 @@
 package com.shouwn.oj.service.member;
 
-import java.util.Optional;
-
-import com.shouwn.oj.exception.AuthenticationFailedException;
-import com.shouwn.oj.exception.NotFoundException;
+import com.shouwn.oj.exception.AlreadyExistException;
 import com.shouwn.oj.model.entity.member.Student;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public class StudentServiceForApiTest {
+@ExtendWith(MockitoExtension.class)
+class StudentServiceForApiTest {
 
+	@Mock
 	private StudentService studentService;
 
+	@InjectMocks
 	private StudentServiceForApi studentServiceForApi;
 
 	private Student student;
 
 	@BeforeEach
 	void init() {
-		studentService = mock(StudentService.class);
-		this.studentServiceForApi = new StudentServiceForApi(this.studentService);
 		this.student = Student.builder()
 				.name("test")
 				.username("test")
@@ -33,38 +37,51 @@ public class StudentServiceForApiTest {
 	}
 
 	@Test
-	public void loginSuccess() {
-		when(studentService.findByUsername(any())).thenReturn(Optional.of(this.student));
-		when(studentService.isCorrectPassword(any(), any())).thenReturn(true);
+	void makeStudentSuccess() {
+		when(studentService.isRegisteredUsername(any())).thenReturn(false);
+		when(studentService.isRegisteredEmail(any())).thenReturn(false);
 
-		studentServiceForApi.login(this.student.getUsername(), this.student.getPassword());
+		studentServiceForApi.makeStudent(this.student.getName(),
+				this.student.getUsername(),
+				this.student.getPassword(),
+				this.student.getEmail());
 
-		verify(studentService).findByUsername(this.student.getUsername());
-		verify(studentService).isCorrectPassword(this.student, this.student.getPassword());
+		final ArgumentCaptor<Student> saveCaptor = ArgumentCaptor.forClass(Student.class);
+
+		verify(studentService).save(saveCaptor.capture());
+
+		assertEquals(this.student.getUsername(), saveCaptor.getValue().getUsername());
+		assertEquals(this.student.getPassword(), saveCaptor.getValue().getPassword());
 	}
 
 	@Test
-	public void loginThrowsNotFoundExceptionByUsername() {
-		when(studentService.findByUsername(any())).thenReturn(Optional.empty());
+	void makeStudentThrowsAlreadyExistExceptionByUsername() {
+		when(studentService.isRegisteredUsername(any())).thenReturn(true);
 
-		assertThrows(NotFoundException.class,
-				() -> studentServiceForApi.login(this.student.getUsername(), this.student.getPassword()));
-
-		verify(studentService).findByUsername(this.student.getUsername());
-	}
-
-	@Test
-	public void loginThrowAuthenticationFailedExceptionPassword() {
-		when(studentService.findByUsername(any())).thenReturn(Optional.of(this.student));
-		when(studentService.isCorrectPassword(any(), any())).thenReturn(false);
-
-		String wrongPassword = "12345test";
-
-		assertThrows(AuthenticationFailedException.class,
-				() -> studentServiceForApi.login(this.student.getUsername(), wrongPassword)
+		assertThrows(AlreadyExistException.class,
+				() -> studentServiceForApi.makeStudent(this.student.getName(),
+						this.student.getUsername(),
+						this.student.getPassword(),
+						this.student.getEmail())
 		);
 
-		verify(studentService).findByUsername(this.student.getUsername());
-		verify(studentService).isCorrectPassword(this.student, wrongPassword);
+		verify(studentService).isRegisteredUsername(this.student.getUsername());
+		verify(studentService, times(0)).isRegisteredEmail(this.student.getEmail());
+	}
+
+	@Test
+	void makeStudentThrowsAlreadyExistExceptionByEmail() {
+		when(studentService.isRegisteredUsername(any())).thenReturn(false);
+		when(studentService.isRegisteredEmail(any())).thenReturn(true);
+
+		assertThrows(AlreadyExistException.class,
+				() -> studentServiceForApi.makeStudent(this.student.getName(),
+						this.student.getUsername(),
+						this.student.getPassword(),
+						this.student.getEmail())
+		);
+
+		verify(studentService).isRegisteredUsername(this.student.getUsername());
+		verify(studentService).isRegisteredEmail(this.student.getEmail());
 	}
 }

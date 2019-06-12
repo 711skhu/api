@@ -1,4 +1,4 @@
-package com.shouwn.oj.model.response;
+package com.shouwn.oj.model.response.course;
 
 import com.shouwn.oj.model.entity.problem.Course;
 import lombok.Getter;

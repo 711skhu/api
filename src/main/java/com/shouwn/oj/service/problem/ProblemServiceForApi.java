@@ -4,9 +4,6 @@ import java.util.List;
 
 import com.shouwn.oj.model.entity.member.Student;
 import com.shouwn.oj.model.entity.problem.Problem;
-import com.shouwn.oj.model.entity.problem.ProblemDetail;
-import com.shouwn.oj.model.entity.problem.Solution;
-import com.shouwn.oj.model.entity.problem.TestCase;
 
 import org.springframework.stereotype.Service;
 
@@ -23,43 +20,16 @@ public class ProblemServiceForApi {
 	}
 
 	public int getResolvedProblemCount(Student student, List<Problem> problems) {
-		int resolvedCount = 0;
-
-		if (problems.size() == 0) {
-			return resolvedCount;
-		}
+		int count = 0;
 
 		for (Problem problem : problems) {
-			List<ProblemDetail> problemDetails = problem.getProblemDetails();
+			int score = solutionService.getStudentScoreInProblemDetails(student, problem.getProblemDetails());
 
-			if (problemDetails.isEmpty()) {
-				continue;
-			}
-
-			if (problemDetails.size() == resolvedProblemDetailCount(problemDetails, student)) {
-				++resolvedCount;
+			if (problem.fullScore() == score) {
+				count++;
 			}
 		}
 
-		return resolvedCount;
-	}
-
-	public int resolvedProblemDetailCount(List<ProblemDetail> problemDetails, Student student) {
-		int resolvedCount = 0;
-
-		for (ProblemDetail problemDetail : problemDetails) {
-			List<TestCase> testCases = problemDetail.getTestCases();
-			List<Solution> solutions = solutionService.findSolutionsByProblemDetailAndMember(problemDetail, student);
-
-			if (solutions.isEmpty()) {
-				continue;
-			}
-
-			if (testCases.size() == solutions.get(0).getScore()) {
-				++resolvedCount;
-			}
-		}
-
-		return resolvedCount;
+		return count;
 	}
 }
