@@ -35,7 +35,7 @@ public class CourseServiceForApi {
 	@Transactional
 	public Student registerCourse(Long studentId, Long courseId) {
 		Student student = studentService.findById(studentId).orElseThrow(() -> new IllegalStateException("존재하지 않는 사용자입니다."));
-		Course course = courseService.findById(courseId).orElseThrow(() -> new IllegalStateException("해당 강좌가 존재하지 않습니다."));
+		Course course = courseService.findCourseById(courseId).orElseThrow(() -> new IllegalStateException("해당 강좌가 존재하지 않습니다."));
 
 		if (!course.getEnabled()) {
 			throw new IllegalStateException("해당 강좌는 비활성화된 강좌입니다.");
@@ -53,5 +53,9 @@ public class CourseServiceForApi {
 		students.add(student);
 
 		return studentService.save(student);
+	}
+
+	public Course getCourseById(Long courseId) {
+		return courseService.findCourseById(courseId).orElseThrow(() -> new IllegalStateException("해당 강좌가 존재하지 않습니다."));
 	}
 }

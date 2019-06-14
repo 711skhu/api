@@ -88,7 +88,7 @@ public class CourseServiceForApiTest {
 
 	@Test
 	public void registerCourseSuccess() {
-		when(courseService.findById(any())).thenReturn(Optional.of(notRegisteredAndEnabledCourse));
+		when(courseService.findCourseById(any())).thenReturn(Optional.of(notRegisteredAndEnabledCourse));
 		when(studentService.findById(any())).thenReturn(Optional.of(this.student));
 
 		int beforeCourseSize = this.student.getCourses().size();
@@ -99,7 +99,7 @@ public class CourseServiceForApiTest {
 
 		courseServiceForApi.registerCourse(this.student.getId(), courseId);
 
-		verify(courseService).findById(courseId);
+		verify(courseService).findCourseById(courseId);
 		verify(studentService).findById(this.student.getId());
 		verify(studentService).save(saveCaptor.capture());
 
@@ -108,40 +108,49 @@ public class CourseServiceForApiTest {
 
 	@Test
 	public void registerCourseThrowsAlreadyExistException() {
-		when(courseService.findById(any())).thenReturn(Optional.of(registeredCourse));
+		when(courseService.findCourseById(any())).thenReturn(Optional.of(registeredCourse));
 		when(studentService.findById(any())).thenReturn(Optional.of(this.student));
 
 		Long courseId = this.registeredCourse.getId();
 
 		assertThrows(AlreadyExistException.class, () -> courseServiceForApi.registerCourse(this.student.getId(), courseId));
 
-		verify(courseService).findById(courseId);
+		verify(courseService).findCourseById(courseId);
 		verify(studentService).findById(this.student.getId());
 	}
 
 	@Test
 	public void registerCourseThrowsIllegalStateExceptionWhenCourseIsEmpty() {
-		when(courseService.findById(any())).thenReturn(Optional.empty());
+		when(courseService.findCourseById(any())).thenReturn(Optional.empty());
 		when(studentService.findById(any())).thenReturn(Optional.of(this.student));
 
 		Long courseId = 4L;
 
 		assertThrows(IllegalStateException.class, () -> courseServiceForApi.registerCourse(this.student.getId(), courseId));
 
-		verify(courseService).findById(courseId);
+		verify(courseService).findCourseById(courseId);
 		verify(studentService).findById(this.student.getId());
 	}
 
 	@Test
 	public void registerCourseThrowsIllegalStateExceptionWhenCourseIsDisable() {
-		when(courseService.findById(any())).thenReturn(Optional.of(this.notRegisteredAndDisabledCourse));
+		when(courseService.findCourseById(any())).thenReturn(Optional.of(this.notRegisteredAndDisabledCourse));
 		when(studentService.findById(any())).thenReturn(Optional.of(this.student));
 
 		Long courseId = this.notRegisteredAndDisabledCourse.getId();
 
 		assertThrows(IllegalStateException.class, () -> courseServiceForApi.registerCourse(this.student.getId(), courseId));
 
-		verify(courseService).findById(courseId);
+		verify(courseService).findCourseById(courseId);
 		verify(studentService).findById(this.student.getId());
+	}
+
+	@Test
+	public void courseInformationThrowsIllegalStateExceptionWhenWrongCourseId() {
+		when(courseService.findCourseById(any())).thenReturn(Optional.empty());
+
+		assertThrows(IllegalStateException.class, () -> courseServiceForApi.getCourseById(this.registeredCourse.getId()));
+
+		verify(courseService).findCourseById(any());
 	}
 }
